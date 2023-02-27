@@ -2,8 +2,10 @@ package com.myq.service;
 
 import com.myq.internalcommon.constatnt.CommonStatusEnum;
 import com.myq.internalcommon.dto.ResponseResult;
+import com.myq.internalcommon.request.VerficationCodeDTO;
 import com.myq.internalcommon.response.NumberCodeResponse;
 import com.myq.internalcommon.response.TokenResponse;
+import com.myq.remote.ServicePassengerUserClient;
 import com.myq.remote.ServiceVerificationcodeClient;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,9 @@ import java.util.concurrent.TimeUnit;
 
 @Service
 public class VerficationService {
+
+    @Autowired
+    private ServicePassengerUserClient servicePassengerUserClient;
 
     @Autowired
     private ServiceVerificationcodeClient serviceVerificationcodeClient;
@@ -77,6 +82,9 @@ public class VerficationService {
         }
         //判断原来是否有用户，并进行处理
         System.out.println("判断原来是否有用户，并进行处理");
+        VerficationCodeDTO verficationCodeDTO = new VerficationCodeDTO();
+        verficationCodeDTO.setPassengerPhone(passengerPhone);
+        servicePassengerUserClient.loginOrRegister(verficationCodeDTO);
         //颁发令牌
         System.out.println("颁发令牌");
         TokenResponse tokenResponse = new TokenResponse();
