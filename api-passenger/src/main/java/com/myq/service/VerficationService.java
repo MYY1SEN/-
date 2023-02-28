@@ -1,10 +1,12 @@
 package com.myq.service;
 
 import com.myq.internalcommon.constatnt.CommonStatusEnum;
+import com.myq.internalcommon.constatnt.IdentityConstant;
 import com.myq.internalcommon.dto.ResponseResult;
 import com.myq.internalcommon.request.VerficationCodeDTO;
 import com.myq.internalcommon.response.NumberCodeResponse;
 import com.myq.internalcommon.response.TokenResponse;
+import com.myq.internalcommon.utils.JwtUtils;
 import com.myq.remote.ServicePassengerUserClient;
 import com.myq.remote.ServiceVerificationcodeClient;
 import org.apache.commons.lang.StringUtils;
@@ -81,14 +83,14 @@ public class VerficationService {
             return ResponseResult.fail(CommonStatusEnum.VERIFICATION_CODE_ERROR.getCode(), CommonStatusEnum.VERIFICATION_CODE_ERROR.getValue());
         }
         //判断原来是否有用户，并进行处理
-        System.out.println("判断原来是否有用户，并进行处理");
         VerficationCodeDTO verficationCodeDTO = new VerficationCodeDTO();
         verficationCodeDTO.setPassengerPhone(passengerPhone);
         servicePassengerUserClient.loginOrRegister(verficationCodeDTO);
         //颁发令牌
-        System.out.println("颁发令牌");
+        String token = JwtUtils.generatorToken(passengerPhone, IdentityConstant.PASSENGER_IDENTITY);
+
         TokenResponse tokenResponse = new TokenResponse();
-        tokenResponse.setToken("token value");
+        tokenResponse.setToken(token);
         return ResponseResult.success(tokenResponse);
     }
 }
