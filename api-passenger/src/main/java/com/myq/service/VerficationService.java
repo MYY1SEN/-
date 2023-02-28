@@ -2,11 +2,13 @@ package com.myq.service;
 
 import com.myq.internalcommon.constatnt.CommonStatusEnum;
 import com.myq.internalcommon.constatnt.IdentityConstant;
+import com.myq.internalcommon.constatnt.TokenConstants;
 import com.myq.internalcommon.dto.ResponseResult;
 import com.myq.internalcommon.request.VerficationCodeDTO;
 import com.myq.internalcommon.response.NumberCodeResponse;
 import com.myq.internalcommon.response.TokenResponse;
 import com.myq.internalcommon.utils.JwtUtils;
+import com.myq.internalcommon.utils.RedisPrefixUtils;
 import com.myq.remote.ServicePassengerUserClient;
 import com.myq.remote.ServiceVerificationcodeClient;
 import org.apache.commons.lang.StringUtils;
@@ -24,8 +26,7 @@ public class VerficationService {
 
     @Autowired
     private ServiceVerificationcodeClient serviceVerificationcodeClient;
-    //前缀
-    private String verificationCodePrefix = "passenger-verification-code-";
+
 
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
@@ -43,22 +44,12 @@ public class VerficationService {
         //存入redis
         //key,value过期时间
         //String key = verificationCodePrefix + passengerCode;
-        String key = generatorKeyByPhone(passengerCode);
+        String key = RedisPrefixUtils.generatorKeyByPhone(passengerCode);
         stringRedisTemplate.opsForValue().set(key, numbercode + "", 2, TimeUnit.MINUTES);
         //通过短信服务器，发送验证码到手机
 
         //返回值
         return ResponseResult.success();
-    }
-
-    /**
-     * 根据手机号生成key
-     *
-     * @param passengerPhone
-     * @return
-     */
-    private String generatorKeyByPhone(String passengerPhone) {
-        return verificationCodePrefix + passengerPhone;
     }
 
     /**
@@ -70,8 +61,7 @@ public class VerficationService {
      */
     public ResponseResult checkCode(String passengerPhone, String verificationCode) {
         //根据手机号去redis读取验证码
-        System.out.println("根据手机号去redis读取验证码");
-        String key = generatorKeyByPhone(passengerPhone);
+        String key = RedisPrefixUtils.generatorKeyByPhone(passengerPhone);
         //根据key获取value
         String codeRedis = stringRedisTemplate.opsForValue().get(key);
         System.out.println("redis的值:" + codeRedis);
@@ -87,10 +77,16 @@ public class VerficationService {
         verficationCodeDTO.setPassengerPhone(passengerPhone);
         servicePassengerUserClient.loginOrRegister(verficationCodeDTO);
         //颁发令牌
-        String token = JwtUtils.generatorToken(passengerPhone, IdentityConstant.PASSENGER_IDENTITY);
-
+        String accessToken = JwtUtils.generatorToken(passengerPhone, IdentityConstant.PASSENGER_IDENTITY, TokenConstants.ACCESS_TOKEN_TYPE);
+        String refreshToken = JwtUtils.generatorToken(passengerPhone, IdentityConstant.PASSENGER_IDENTITY, TokenConstants.REFRESH_TOKEN_TYPE);
+        //将token存入redis
+        String accessTokenKey = RedisPrefixUtils.generatorTokenKey(passengerPhone, IdentityConstant.PASSENGER_IDENTITY, TokenConstants.ACCESS_TOKEN_TYPE);
+        stringRedisTemplate.opsForValue().set(accessTokenKey, accessToken, 30, TimeUnit.DAYS);
+        String refreshTokenKey = RedisPrefixUtils.generatorTokenKey(passengerPhone, IdentityConstant.PASSENGER_IDENTITY, TokenConstants.REFRESH_TOKEN_TYPE);
+        stringRedisTemplate.opsForValue().set(refreshTokenKey, refreshToken, 31, TimeUnit.DAYS);
         TokenResponse tokenResponse = new TokenResponse();
-        tokenResponse.setToken(token);
+        tokenResponse.setAccesstoken(accessToken);
+        tokenResponse.setRefreshToken(refreshToken);
         return ResponseResult.success(tokenResponse);
     }
 }
