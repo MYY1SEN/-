@@ -1,9 +1,8 @@
-package com.myq.dto;
+package com.myq.internalcommon.dto;
 
 import lombok.Data;
 
 import java.sql.Timestamp;
-import java.time.LocalTime;
 
 @Data
 public class PassengerUser {
@@ -14,6 +13,6 @@ public class PassengerUser {
     private String passengerName;
     private byte passengerGender;
     private byte state;
-    //private String profilephoto;
+    private String profilePhoto;
 
 }

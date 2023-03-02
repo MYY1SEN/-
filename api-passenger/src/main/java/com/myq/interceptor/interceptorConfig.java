@@ -20,6 +20,7 @@ public class interceptorConfig implements WebMvcConfigurer {
                 //不拦截路径
                 .excludePathPatterns("/verfication-code")
                 .excludePathPatterns("/verfication-code-check")
-                .excludePathPatterns("/token-refresh");
+                .excludePathPatterns("/token-refresh")
+                ;
     }
 }
