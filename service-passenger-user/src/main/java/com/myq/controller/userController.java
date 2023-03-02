@@ -13,6 +13,7 @@ public class userController {
 
     @Autowired
     UserService userService;
+
     @PostMapping("/user")
     public ResponseResult loginOrReg(@RequestBody VerficationCodeDTO verficationCodeDTO) {
         String passengerPhone = verficationCodeDTO.getPassengerPhone();
